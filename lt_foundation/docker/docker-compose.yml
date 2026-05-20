@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lt
+      POSTGRES_PASSWORD: lt
+      POSTGRES_DB: lt_foundation
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lt -d lt_foundation"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://lt:lt@postgres:5432/lt_foundation
+      NODE_ENV: development
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../apps/api/src:/app/apps/api/src
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    restart: unless-stopped
+    environment:
+      API_URL: http://api:3000
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

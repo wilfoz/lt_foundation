@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum TowerClassification {
+  SELF_SUPPORTING
+  GUYED
+}
+
+enum FoundationKind {
+  CAISSON
+  FOOTING
+}
+
+enum FoundationTypeCode {
+  TM
+  TE
+  TR
+  S
+  SM
+  VE
+}
+
+enum DataSource {
+  THEORETICAL
+  FIELD
+  RECALCULATED
+}
+
+enum DocumentType {
+  PDF
+  XLS
+  DWG
+}
+
+enum ProjectType {
+  GUYED_HEIGHT_LOCATION
+  GUYED_FOUNDATION
+  SELF_SUPPORTING_STUBS
+  SELF_SUPPORTING_FOUNDATION
+}
+
+enum ExtractionStatus {
+  PENDING
+  EXTRACTED
+  VALIDATED
+  COMMITTED
+  REJECTED
+}
+
+// ─── Project Ingestion ────────────────────────────────────────────────────────
+
+model ProjectDocument {
+  id            String           @id @default(uuid())
+  filename      String
+  documentType  DocumentType
+  projectType   ProjectType
+  storageKey    String
+  status        ExtractionStatus @default(PENDING)
+  uploadedAt    DateTime         @default(now())
+  towers        Tower[]
+  extractedData ExtractedData[]
+
+  @@map("project_documents")
+}
+
+model ExtractedData {
+  id                String          @id @default(uuid())
+  projectDocumentId String
+  projectDocument   ProjectDocument @relation(fields: [projectDocumentId], references: [id], onDelete: Cascade)
+  towerParams       Json            @default("{}")
+  legs              Json            @default("[]")
+  elements          Json            @default("[]")
+  userEdits         Json            @default("{}")
+  validatedAt       DateTime?
+  validatedByUserId String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@map("extracted_data")
+}
+
+// ─── Foundation Design ────────────────────────────────────────────────────────
+
+model Tower {
+  id                String              @id @default(uuid())
+  type              String
+  extension         Decimal             @db.Decimal(8, 2)
+  hu                Decimal             @db.Decimal(8, 2)
+  classification    TowerClassification
+  deflectionDeg     Int?
+  deflectionMin     Int?
+  deflectionSec     Decimal?            @db.Decimal(6, 4)
+  deflectionDir     String?
+  projectDocumentId String?
+  projectDocument   ProjectDocument?    @relation(fields: [projectDocumentId], references: [id])
+  dataSource        DataSource          @default(THEORETICAL)
+  version           Int                 @default(1)
+  legs              Leg[]
+  guyedElements     GuyedElement[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@map("towers")
+}
+
+model Leg {
+  id                     String         @id @default(uuid())
+  legId                  String         // A|B|C|D
+  towerId                String
+  tower                  Tower          @relation(fields: [towerId], references: [id], onDelete: Cascade)
+  foundationKind         FoundationKind?
+  foundationCatalogRefId String?
+  foundationGeometry     Json?
+  foundationAzimuth      Decimal?       @db.Decimal(8, 4)
+  naturalElevation       Decimal?       @db.Decimal(10, 4)
+  concreteCastingElev    Decimal?       @db.Decimal(10, 4)
+  distance               Decimal?       @db.Decimal(10, 4)
+  stubType               String?
+  stubLength             Decimal?       @db.Decimal(8, 4)
+  stubEmbedment          Decimal?       @db.Decimal(8, 4)
+  stubInclination        Decimal?       @db.Decimal(8, 4)
+  theoreticalData        Json?
+  fieldData              Json?
+  dataSource             DataSource     @default(THEORETICAL)
+
+  @@unique([towerId, legId])
+  @@map("legs")
+}
+
+model GuyedElement {
+  id                     String         @id @default(uuid())
+  elementId              String         // MC|A|B|C|D
+  towerId                String
+  tower                  Tower          @relation(fields: [towerId], references: [id], onDelete: Cascade)
+  foundationKind         FoundationKind?
+  foundationCatalogRefId String?
+  foundationGeometry     Json?
+  foundationAzimuth      Decimal?       @db.Decimal(8, 4)
+  naturalElevation       Decimal?       @db.Decimal(10, 4)
+  concreteCastingElev    Decimal?       @db.Decimal(10, 4)
+  distance               Decimal?       @db.Decimal(10, 4)
+  stayHorizAngleDeg      Int?
+  stayHorizAngleMin      Int?
+  stayHorizAngleSec      Decimal?       @db.Decimal(6, 4)
+  stayInclinationAngle   Decimal?       @db.Decimal(8, 4)
+  stubType               String?
+  stubLength             Decimal?       @db.Decimal(8, 4)
+  stubEmbedment          Decimal?       @db.Decimal(8, 4)
+  theoreticalData        Json?
+  fieldData              Json?
+  dataSource             DataSource     @default(THEORETICAL)
+
+  @@unique([towerId, elementId])
+  @@map("guyed_elements")
+}
+
+model FoundationCatalogItem {
+  id            String              @id @default(uuid())
+  catalogRefId  String              @unique
+  kind          FoundationKind
+  typeCode      FoundationTypeCode
+  geometry      Json
+  reinforcement Json?
+  loadCapacity  Json?               // { compression: number, tension: number } in kN
+  description   String?
+
+  @@map("foundation_catalog_items")
+}
