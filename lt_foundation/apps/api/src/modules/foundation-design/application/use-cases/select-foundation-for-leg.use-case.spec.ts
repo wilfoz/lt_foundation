@@ -17,6 +17,7 @@ const towerRepo: jest.Mocked<TowerRepository> = {
 const catalogRepo: jest.Mocked<FoundationCatalogRepository> = {
   findById: jest.fn(),
   findByKind: jest.fn(),
+  findByTypeCode: jest.fn(),
   findAll: jest.fn(),
 };
 
@@ -30,7 +31,7 @@ describe('SelectFoundationForLegUseCase', () => {
   it('assigns a caisson foundation to a leg', async () => {
     const tower = makeTower();
     towerRepo.findById.mockResolvedValue(tower);
-    catalogRepo.findById.mockResolvedValue({ catalogRefId: 'c001', kind: 'CAISSON', geometry: { shaftDiameter: 0.8, baseDiameter: 1.4, shaftHeight: 3, frustumHeight: 0.4, baseHeight: 0.8 } });
+    catalogRepo.findById.mockResolvedValue({ catalogRefId: 'c001', kind: 'CAISSON', typeCode: 'TM', geometry: { shaftDiameter: 0.8, baseDiameter: 1.4, shaftHeight: 3, frustumHeight: 0.4, baseHeight: 0.8 } });
     towerRepo.update.mockResolvedValue(tower);
 
     await useCase.execute({ towerId: 't1', legId: 'A', foundationKind: 'CAISSON', catalogRefId: 'c001' });
@@ -41,7 +42,7 @@ describe('SelectFoundationForLegUseCase', () => {
   it('assigns a footing foundation to a leg', async () => {
     const tower = makeTower();
     towerRepo.findById.mockResolvedValue(tower);
-    catalogRepo.findById.mockResolvedValue({ catalogRefId: 'f001', kind: 'FOOTING', geometry: { length: 2, width: 2, height: 0.6 } });
+    catalogRepo.findById.mockResolvedValue({ catalogRefId: 'f001', kind: 'FOOTING', typeCode: 'S', geometry: { length: 2, width: 2, height: 0.6 } });
     towerRepo.update.mockResolvedValue(tower);
 
     await useCase.execute({ towerId: 't1', legId: 'B', foundationKind: 'FOOTING', catalogRefId: 'f001' });
@@ -67,10 +68,10 @@ describe('SelectFoundationForLegUseCase', () => {
     towerRepo.findById.mockResolvedValue(tower);
     towerRepo.update.mockResolvedValue(tower);
 
-    catalogRepo.findById.mockResolvedValueOnce({ catalogRefId: 'c001', kind: 'CAISSON', geometry: { shaftDiameter: 0.8, baseDiameter: 1.4, shaftHeight: 3, frustumHeight: 0.4, baseHeight: 0.8 } });
+    catalogRepo.findById.mockResolvedValueOnce({ catalogRefId: 'c001', kind: 'CAISSON', typeCode: 'TM', geometry: { shaftDiameter: 0.8, baseDiameter: 1.4, shaftHeight: 3, frustumHeight: 0.4, baseHeight: 0.8 } });
     await useCase.execute({ towerId: 't1', legId: 'A', foundationKind: 'CAISSON', catalogRefId: 'c001' });
 
-    catalogRepo.findById.mockResolvedValueOnce({ catalogRefId: 'f001', kind: 'FOOTING', geometry: { length: 2, width: 2, height: 0.6 } });
+    catalogRepo.findById.mockResolvedValueOnce({ catalogRefId: 'f001', kind: 'FOOTING', typeCode: 'S', geometry: { length: 2, width: 2, height: 0.6 } });
     await useCase.execute({ towerId: 't1', legId: 'B', foundationKind: 'FOOTING', catalogRefId: 'f001' });
 
     expect(tower.getLeg('A')!.foundation).toBeInstanceOf(CaissonFoundation);

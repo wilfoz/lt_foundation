@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '../../../../shared/prisma.service';
 import { ExtractedData, ExtractedTowerParams, ExtractedLegParams, ExtractedElementParams } from '../../domain/entities/extracted-data.entity';
 import { ExtractedDataRepository } from '../../application/ports/extracted-data.repository';
 

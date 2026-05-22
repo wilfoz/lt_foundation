@@ -15,7 +15,7 @@ export class XlsParserAdapter implements DocumentParserPort {
     }
 
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    await workbook.xlsx.load(buffer as any);
 
     const warnings: string[] = [];
 

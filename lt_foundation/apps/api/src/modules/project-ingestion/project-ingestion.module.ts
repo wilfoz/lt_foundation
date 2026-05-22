@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaService } from '../../shared/prisma.service';
 import { FoundationDesignModule } from '../foundation-design/foundation-design.module';
 
 // Domain services
@@ -32,12 +32,12 @@ import { ProjectIngestionController } from './presentation/controllers/project-i
 
 @Module({
   imports: [
-    PrismaModule,
     FoundationDesignModule,
     MulterModule.register({ storage: memoryStorage() }),
   ],
   controllers: [ProjectIngestionController],
   providers: [
+    PrismaService,
     DataNormalizerService,
     XlsParserAdapter,
     PdfParserAdapter,

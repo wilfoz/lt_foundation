@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir \"c:\\\\Users\\\\wilwa\\\\Desktop\\\\Developer\\\\foundation\\\\lt_foundation\")"
+      "Bash(dir \"c:\\\\Users\\\\wilwa\\\\Desktop\\\\Developer\\\\foundation\\\\lt_foundation\")",
+      "Bash(npx tsc *)"
     ]
   }
 }
