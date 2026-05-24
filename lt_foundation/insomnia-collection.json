@@ -1,0 +1,623 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-05-24T00:00:00.000Z",
+  "__export_source": "lt-foundation",
+  "resources": [
+    {
+      "_id": "wrk_ltfoundation",
+      "_type": "workspace",
+      "name": "LT Foundation API",
+      "description": "Sistema de cálculo de fundações de Torres de Linha de Transmissão"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_ltfoundation",
+      "name": "Local",
+      "data": {
+        "base_url": "http://localhost:3000",
+        "access_token": "",
+        "refresh_token": "",
+        "work_id": "",
+        "tower_id": "",
+        "review_item_id": "",
+        "document_id": ""
+      }
+    },
+
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_ltfoundation",
+      "name": "Auth"
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/auth/login",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@ltfoundation.com\",\n  \"password\": \"Admin@123\"\n}"
+      }
+    },
+    {
+      "_id": "req_auth_refresh",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/auth/refresh",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"{{ refresh_token }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_auth_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/auth/logout",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" }
+      ],
+      "body": { "mimeType": "application/json", "text": "" }
+    },
+
+    {
+      "_id": "fld_obras",
+      "_type": "request_group",
+      "parentId": "wrk_ltfoundation",
+      "name": "Obras"
+    },
+    {
+      "_id": "req_obras_list",
+      "_type": "request",
+      "parentId": "fld_obras",
+      "name": "Listar Obras",
+      "method": "GET",
+      "url": "{{ base_url }}/obras?page=1&limit=20",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_obras_get",
+      "_type": "request",
+      "parentId": "fld_obras",
+      "name": "Buscar Obra por ID",
+      "method": "GET",
+      "url": "{{ base_url }}/obras/{{ work_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_obras_create",
+      "_type": "request",
+      "parentId": "fld_obras",
+      "name": "Criar Obra",
+      "method": "POST",
+      "url": "{{ base_url }}/obras",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"LT 500kV Tucuruí-Xingu\",\n  \"contractNumber\": \"CT-2026-001\",\n  \"description\": \"Linha de transmissão 500kV trecho norte\"\n}"
+      }
+    },
+    {
+      "_id": "req_obras_archive",
+      "_type": "request",
+      "parentId": "fld_obras",
+      "name": "Arquivar Obra",
+      "method": "PATCH",
+      "url": "{{ base_url }}/obras/{{ work_id }}/archive",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+
+    {
+      "_id": "fld_obras_torres",
+      "_type": "request_group",
+      "parentId": "fld_obras",
+      "name": "Torres da Obra"
+    },
+    {
+      "_id": "req_obras_torres_list",
+      "_type": "request",
+      "parentId": "fld_obras_torres",
+      "name": "Listar Torres da Obra",
+      "method": "GET",
+      "url": "{{ base_url }}/obras/{{ work_id }}/torres",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_obras_torres_add_self",
+      "_type": "request",
+      "parentId": "fld_obras_torres",
+      "name": "Adicionar Torre Autoportante",
+      "method": "POST",
+      "url": "{{ base_url }}/obras/{{ work_id }}/torres",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"towerId\": \"{{ tower_id }}\",\n  \"sequence\": 1,\n  \"alias\": \"T-001\"\n}"
+      }
+    },
+    {
+      "_id": "req_obras_torres_add_guyed",
+      "_type": "request",
+      "parentId": "fld_obras_torres",
+      "name": "Adicionar Torre Estaiada",
+      "method": "POST",
+      "url": "{{ base_url }}/obras/{{ work_id }}/torres",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"towerId\": \"{{ tower_id }}\",\n  \"sequence\": 2,\n  \"alias\": \"T-002\"\n}"
+      }
+    },
+
+    {
+      "_id": "fld_obras_documentos",
+      "_type": "request_group",
+      "parentId": "fld_obras",
+      "name": "Documentos da Obra"
+    },
+    {
+      "_id": "req_docs_list",
+      "_type": "request",
+      "parentId": "fld_obras_documentos",
+      "name": "Listar Documentos",
+      "method": "GET",
+      "url": "{{ base_url }}/obras/{{ work_id }}/documentos",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_docs_upload",
+      "_type": "request",
+      "parentId": "fld_obras_documentos",
+      "name": "Enviar Documento (multipart)",
+      "method": "POST",
+      "url": "{{ base_url }}/obras/{{ work_id }}/documentos",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "file", "value": "", "type": "file", "fileName": "" }
+        ]
+      }
+    },
+
+    {
+      "_id": "fld_validacao",
+      "_type": "request_group",
+      "parentId": "fld_obras",
+      "name": "Validação Humana"
+    },
+    {
+      "_id": "req_val_queue",
+      "_type": "request",
+      "parentId": "fld_validacao",
+      "name": "Fila de Validação da Obra",
+      "method": "GET",
+      "url": "{{ base_url }}/obras/{{ work_id }}/validacao",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_val_count",
+      "_type": "request",
+      "parentId": "fld_validacao",
+      "name": "Contador de Pendentes",
+      "method": "GET",
+      "url": "{{ base_url }}/obras/{{ work_id }}/validacao/count",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_val_item_get",
+      "_type": "request",
+      "parentId": "fld_validacao",
+      "name": "Detalhe do ReviewItem",
+      "method": "GET",
+      "url": "{{ base_url }}/review-items/{{ review_item_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_val_field_inspect",
+      "_type": "request",
+      "parentId": "fld_validacao",
+      "name": "Inspecionar Campo (sem alterar)",
+      "method": "PUT",
+      "url": "{{ base_url }}/review-items/{{ review_item_id }}/fields/fieldKey/inspect",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_val_field_override",
+      "_type": "request",
+      "parentId": "fld_validacao",
+      "name": "Sobrescrever Campo",
+      "method": "PUT",
+      "url": "{{ base_url }}/review-items/{{ review_item_id }}/fields/fieldKey/override",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"value\": \"novo valor corrigido\",\n  \"justification\": \"Valor extraído incorretamente pelo OCR\"\n}"
+      }
+    },
+    {
+      "_id": "req_val_approve",
+      "_type": "request",
+      "parentId": "fld_validacao",
+      "name": "Aprovar ReviewItem (RN-301)",
+      "method": "POST",
+      "url": "{{ base_url }}/review-items/{{ review_item_id }}/approve",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" }
+      ],
+      "body": { "mimeType": "application/json", "text": "" }
+    },
+    {
+      "_id": "req_val_reject",
+      "_type": "request",
+      "parentId": "fld_validacao",
+      "name": "Rejeitar ReviewItem",
+      "method": "POST",
+      "url": "{{ base_url }}/review-items/{{ review_item_id }}/reject",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"Dados inconsistentes com o memorial descritivo da obra\"\n}"
+      }
+    },
+
+    {
+      "_id": "fld_foundation",
+      "_type": "request_group",
+      "parentId": "wrk_ltfoundation",
+      "name": "Foundation Design"
+    },
+    {
+      "_id": "fld_fd_towers",
+      "_type": "request_group",
+      "parentId": "fld_foundation",
+      "name": "Torres"
+    },
+    {
+      "_id": "req_tower_create_self",
+      "_type": "request",
+      "parentId": "fld_fd_towers",
+      "name": "Criar Torre Autoportante",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/towers",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"type\": \"1A\",\n  \"extension\": 0,\n  \"Hu\": 30.5,\n  \"classification\": \"SELF_SUPPORTING\"\n}"
+      }
+    },
+    {
+      "_id": "req_tower_create_guyed",
+      "_type": "request",
+      "parentId": "fld_fd_towers",
+      "name": "Criar Torre Estaiada",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/towers",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"type\": \"2E\",\n  \"extension\": 3,\n  \"Hu\": 42.0,\n  \"classification\": \"GUYED\"\n}"
+      }
+    },
+    {
+      "_id": "req_tower_list",
+      "_type": "request",
+      "parentId": "fld_fd_towers",
+      "name": "Listar Torres",
+      "method": "GET",
+      "url": "{{ base_url }}/api/v1/towers",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_tower_get",
+      "_type": "request",
+      "parentId": "fld_fd_towers",
+      "name": "Buscar Torre por ID",
+      "method": "GET",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_tower_delete",
+      "_type": "request",
+      "parentId": "fld_fd_towers",
+      "name": "Excluir Torre",
+      "method": "DELETE",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+
+    {
+      "_id": "fld_fd_calc",
+      "_type": "request_group",
+      "parentId": "fld_foundation",
+      "name": "Cálculo"
+    },
+    {
+      "_id": "req_calc_run",
+      "_type": "request",
+      "parentId": "fld_fd_calc",
+      "name": "Executar Cálculo (EP-009)",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/calculate",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" }
+      ],
+      "body": { "mimeType": "application/json", "text": "" }
+    },
+    {
+      "_id": "req_calc_validations",
+      "_type": "request",
+      "parentId": "fld_fd_calc",
+      "name": "Validações da Torre (EP-010)",
+      "method": "GET",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/validations",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_calc_spreadsheet_draft",
+      "_type": "request",
+      "parentId": "fld_fd_calc",
+      "name": "Emitir Planilha Rascunho (EP-011)",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/spreadsheet",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"format\": \"XLSX\",\n  \"draft\": true\n}"
+      }
+    },
+    {
+      "_id": "req_calc_spreadsheet_final",
+      "_type": "request",
+      "parentId": "fld_fd_calc",
+      "name": "Emitir Planilha Final (EP-011)",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/spreadsheet",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"format\": \"XLSX\",\n  \"draft\": false\n}"
+      }
+    },
+    {
+      "_id": "req_calc_recalculate",
+      "_type": "request",
+      "parentId": "fld_fd_calc",
+      "name": "Recalcular com Dados de Campo",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/recalculate",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"fieldData\": {\n    \"legA\": { \"depth\": 2.5, \"load\": 120.0 },\n    \"legB\": { \"depth\": 2.8, \"load\": 115.0 }\n  }\n}"
+      }
+    },
+
+    {
+      "_id": "fld_fd_legs",
+      "_type": "request_group",
+      "parentId": "fld_foundation",
+      "name": "Pernas (Autoportante)"
+    },
+    {
+      "_id": "req_leg_set_foundation",
+      "_type": "request",
+      "parentId": "fld_fd_legs",
+      "name": "Selecionar Fundação da Perna",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/legs/legId/foundation",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"foundationCatalogId\": \"catalog-uuid-here\"\n}"
+      }
+    },
+    {
+      "_id": "req_leg_update",
+      "_type": "request",
+      "parentId": "fld_fd_legs",
+      "name": "Atualizar Dados da Perna",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/legs/legId",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"compression\": 850.0,\n  \"tension\": 420.0,\n  \"soilType\": \"CLAY\"\n}"
+      }
+    },
+
+    {
+      "_id": "fld_fd_elements",
+      "_type": "request_group",
+      "parentId": "fld_foundation",
+      "name": "Elementos Estaiados (MC + Estais)"
+    },
+    {
+      "_id": "req_element_set_foundation",
+      "_type": "request",
+      "parentId": "fld_fd_elements",
+      "name": "Selecionar Fundação do Elemento",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/elements/elementId/foundation",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"foundationCatalogId\": \"catalog-uuid-here\"\n}"
+      }
+    },
+    {
+      "_id": "req_element_update",
+      "_type": "request",
+      "parentId": "fld_fd_elements",
+      "name": "Atualizar Dados do Elemento",
+      "method": "PUT",
+      "url": "{{ base_url }}/api/v1/towers/{{ tower_id }}/elements/elementId",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"compression\": 650.0,\n  \"tension\": 310.0\n}"
+      }
+    },
+
+    {
+      "_id": "fld_catalog",
+      "_type": "request_group",
+      "parentId": "wrk_ltfoundation",
+      "name": "Catálogo de Fundações"
+    },
+    {
+      "_id": "req_catalog_list",
+      "_type": "request",
+      "parentId": "fld_catalog",
+      "name": "Listar Catálogo",
+      "method": "GET",
+      "url": "{{ base_url }}/api/v1/catalog/foundations",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_catalog_filter_type",
+      "_type": "request",
+      "parentId": "fld_catalog",
+      "name": "Filtrar por Tipo (ex: CAISSON)",
+      "method": "GET",
+      "url": "{{ base_url }}/api/v1/catalog/foundations?type=CAISSON",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+
+    {
+      "_id": "fld_ingestion",
+      "_type": "request_group",
+      "parentId": "wrk_ltfoundation",
+      "name": "Ingestão de Projetos"
+    },
+    {
+      "_id": "req_ing_list",
+      "_type": "request",
+      "parentId": "fld_ingestion",
+      "name": "Listar Documentos Ingeridos",
+      "method": "GET",
+      "url": "{{ base_url }}/api/v1/projects",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_ing_upload",
+      "_type": "request",
+      "parentId": "fld_ingestion",
+      "name": "Upload de Documento (EP-012)",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/projects/upload",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "file", "value": "", "type": "file", "fileName": "" },
+          { "name": "documentType", "value": "PDF" },
+          { "name": "projectType", "value": "GUYED_FOUNDATION" }
+        ]
+      }
+    },
+    {
+      "_id": "req_ing_extract",
+      "_type": "request",
+      "parentId": "fld_ingestion",
+      "name": "Extrair Dados (EP-013)",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/projects/{{ document_id }}/extract",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" }
+      ],
+      "body": { "mimeType": "application/json", "text": "" }
+    },
+    {
+      "_id": "req_ing_get_extracted",
+      "_type": "request",
+      "parentId": "fld_ingestion",
+      "name": "Ver Dados Extraídos (EP-014)",
+      "method": "GET",
+      "url": "{{ base_url }}/api/v1/projects/{{ document_id }}/extracted-data",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ access_token }}" }]
+    },
+    {
+      "_id": "req_ing_validate",
+      "_type": "request",
+      "parentId": "fld_ingestion",
+      "name": "Validar Dados com Correções (EP-015)",
+      "method": "PATCH",
+      "url": "{{ base_url }}/api/v1/projects/{{ document_id }}/extracted-data/validate",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": \"user-uuid\",\n  \"userEdits\": {\n    \"towerType\": \"1A\",\n    \"extension\": 3\n  }\n}"
+      }
+    },
+    {
+      "_id": "req_ing_commit",
+      "_type": "request",
+      "parentId": "fld_ingestion",
+      "name": "Commitar como Torre (EP-016)",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/projects/{{ document_id }}/commit",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ access_token }}" }
+      ],
+      "body": { "mimeType": "application/json", "text": "" }
+    }
+  ]
+}

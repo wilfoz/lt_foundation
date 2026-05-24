@@ -1,7 +1,8 @@
-import { Component, signal, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, signal, inject, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TowerApiService } from '../../core/services/tower-api.service';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'lt-tower-form',
@@ -32,7 +33,7 @@ import { TowerApiService } from '../../core/services/tower-api.service';
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Hu (m) *</label>
-            <input [(ngModel)]="form.Hu" name="Hu" type="number" required step="0.1"
+            <input [(ngModel)]="form.hu" name="hu" type="number" required step="0.1"
               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
@@ -45,8 +46,21 @@ import { TowerApiService } from '../../core/services/tower-api.service';
           </div>
         </div>
 
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sequência na Obra *</label>
+            <input [(ngModel)]="form.sequence" name="sequence" type="number" required min="1"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Alias / Código de Campo</label>
+            <input [(ngModel)]="form.alias" name="alias" placeholder="Ex.: T-42"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+        </div>
+
         <fieldset class="border border-gray-200 rounded-md p-4">
-          <legend class="text-sm font-medium text-gray-700 px-2">Ângulo de Deflexão *</legend>
+          <legend class="text-sm font-medium text-gray-700 px-2">Ângulo de Deflexão</legend>
           <div class="grid grid-cols-4 gap-3">
             <div>
               <label class="block text-xs text-gray-500 mb-1">Graus</label>
@@ -79,7 +93,8 @@ import { TowerApiService } from '../../core/services/tower-api.service';
             class="bg-primary text-white px-5 py-2 rounded-md hover:bg-primary-dark transition-colors disabled:opacity-60">
             {{ saving() ? 'Salvando...' : 'Criar Torre' }}
           </button>
-          <button type="button" (click)="cancel()" class="border border-gray-300 px-5 py-2 rounded-md hover:bg-gray-50 transition-colors">
+          <button type="button" (click)="cancel()"
+            class="border border-gray-300 px-5 py-2 rounded-md hover:bg-gray-50 transition-colors">
             Cancelar
           </button>
         </div>
@@ -87,34 +102,52 @@ import { TowerApiService } from '../../core/services/tower-api.service';
     </div>
   `,
 })
-export class TowerFormComponent {
-  private readonly api = inject(TowerApiService);
+export class TowerFormComponent implements OnInit {
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   saving = signal(false);
   error = signal<string | null>(null);
+  private obraId = '';
 
   form = {
     type: '',
     extension: 6,
-    Hu: 21,
+    hu: 21,
     classification: 'SELF_SUPPORTING' as 'SELF_SUPPORTING' | 'GUYED',
+    sequence: 1,
+    alias: '',
     deflectionAngle: { deg: 0, min: 0, sec: 0, dir: 'D' as 'D' | 'E' },
   };
 
-  onSubmit() {
+  ngOnInit(): void {
+    this.obraId = this.route.parent!.snapshot.paramMap.get('id') ?? '';
+  }
+
+  onSubmit(): void {
+    if (!this.form.type || !this.form.sequence) {
+      this.error.set('Tipo e sequência são obrigatórios.');
+      return;
+    }
     this.saving.set(true);
     this.error.set(null);
-    this.api.createTower(this.form).subscribe({
-      next: (tower) => this.router.navigate(['/towers', tower.id]),
-      error: (err) => {
-        this.error.set(err.error?.message ?? 'Erro ao criar torre.');
-        this.saving.set(false);
-      },
+
+    const body = { ...this.form, alias: this.form.alias || undefined };
+
+    const classification = this.form.classification;
+    firstValueFrom(this.http.post<{ towerId: string }>(
+      `/api/v1/obras/${this.obraId}/torres`, body,
+    )).then((res) => {
+      const type = classification === 'SELF_SUPPORTING' ? 'autoportante' : 'estaiada';
+      this.router.navigate(['/torres', res.towerId, type]);
+    }).catch((err) => {
+      this.error.set(err.error?.message ?? 'Erro ao criar torre.');
+      this.saving.set(false);
     });
   }
 
-  cancel() {
-    this.router.navigate(['/towers']);
+  cancel(): void {
+    this.router.navigate(['/obras', this.obraId, 'torres']);
   }
 }

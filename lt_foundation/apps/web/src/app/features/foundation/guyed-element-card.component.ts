@@ -15,6 +15,7 @@ import { ValidationBadgeComponent } from '../../shared/components/validation-bad
         <span class="text-xs px-2 py-0.5 rounded font-medium" [class]="badgeClass()">{{ badgeLabel() }}</span>
       </div>
 
+      <!-- Foundation selection -->
       <div>
         <label class="block text-xs text-gray-500 mb-1">Tipo de Fundação</label>
         <select [(ngModel)]="selectedKind" (ngModelChange)="onKindChange()"
@@ -38,6 +39,7 @@ import { ValidationBadgeComponent } from '../../shared/components/validation-bad
         </div>
       }
 
+      <!-- Survey -->
       <fieldset class="border border-gray-100 rounded p-3 space-y-2">
         <legend class="text-xs text-gray-400 px-1">Topografia</legend>
         <div class="grid grid-cols-3 gap-2">
@@ -52,13 +54,14 @@ import { ValidationBadgeComponent } from '../../shared/components/validation-bad
               class="w-full border border-gray-300 rounded px-2 py-1 text-xs" />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-0.5">Dist (m)</label>
+            <label class="block text-xs text-gray-500 mb-0.5">Dist. Proj. (m)</label>
             <input [(ngModel)]="survey.distance" type="number" step="0.001" (blur)="saveData()"
               class="w-full border border-gray-300 rounded px-2 py-1 text-xs" />
           </div>
         </div>
       </fieldset>
 
+      <!-- Stay geometry (stays only) -->
       @if (element.id !== 'MC') {
         <fieldset class="border border-gray-100 rounded p-3 space-y-2">
           <legend class="text-xs text-gray-400 px-1">Geometria do Estai</legend>
@@ -75,11 +78,66 @@ import { ValidationBadgeComponent } from '../../shared/components/validation-bad
             </div>
           </div>
           @if (calculationResult?.stayRadialDistance != null) {
-            <p class="text-xs text-blue-700 font-mono">R = {{ calculationResult!.stayRadialDistance!.toFixed(3) }} m</p>
+            <p class="text-xs text-blue-700 font-mono">R (teórico) = {{ calculationResult!.stayRadialDistance!.toFixed(3) }} m</p>
+          }
+        </fieldset>
+
+        <!-- Terrain correction (Fundacao SM-VPM pipeline) -->
+        <fieldset class="border border-blue-100 rounded p-3 space-y-2">
+          <legend class="text-xs text-blue-500 px-1">Correção por Terreno</legend>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5">Cota PF (m)</label>
+              <input [(ngModel)]="terrain.cotaPF" type="number" step="0.001" (blur)="saveData()"
+                class="w-full border border-gray-300 rounded px-2 py-1 text-xs" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5" title="Cota a 5 m do PF">P5 (m)</label>
+              <input [(ngModel)]="terrain.P5" type="number" step="0.001" (blur)="saveData()"
+                class="w-full border border-gray-300 rounded px-2 py-1 text-xs" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5" title="Distância horizontal MC → CC">XCC (m)</label>
+              <input [(ngModel)]="terrain.XCC" type="number" step="0.001" (blur)="saveData()"
+                class="w-full border border-gray-300 rounded px-2 py-1 text-xs" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-0.5" title="Elevação do ponto de fixação no mastro">Elev. Fix. (m)</label>
+              <input [(ngModel)]="terrain.elevFixation" type="number" step="0.001" (blur)="saveData()"
+                class="w-full border border-gray-300 rounded px-2 py-1 text-xs" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs text-gray-500 mb-0.5" title="N5SEL=0.7647 / N5SEM=0.7383">Tg Estai</label>
+              <input [(ngModel)]="terrain.stayTangent" type="number" step="0.0001" (blur)="saveData()"
+                class="w-full border border-gray-300 rounded px-2 py-1 text-xs" />
+            </div>
+          </div>
+
+          <!-- Terrain correction results -->
+          @if (anchorPoint()?.terrainAdjusted) {
+            <div class="mt-2 bg-blue-50 rounded p-2 text-xs font-mono space-y-1">
+              <p class="text-blue-600 font-semibold text-xs mb-1">Valores Ajustados</p>
+              <div class="grid grid-cols-2 gap-x-3">
+                <span class="text-gray-500">alfa:</span>
+                <span>{{ (anchorPoint()!.alfa! * 180 / Math.PI).toFixed(4) }}°</span>
+                <span class="text-gray-500">NCC aj.:</span>
+                <span>{{ anchorPoint()!.adjustedNCC?.toFixed(4) }} m</span>
+                <span class="text-gray-500">HC aj.:</span>
+                <span>{{ anchorPoint()!.adjustedHC?.toFixed(4) }} m</span>
+                <span class="text-gray-500">Dist. Real:</span>
+                <span>{{ anchorPoint()!.realDistance?.toFixed(4) }} m</span>
+                <span class="text-gray-500">Comp. Cabo:</span>
+                <span class="font-bold">{{ anchorPoint()!.cableCutLength?.toFixed(4) }} m</span>
+              </div>
+            </div>
+          }
+          @if (anchorPoint() && !anchorPoint()!.terrainAdjusted) {
+            <p class="text-xs text-yellow-600 mt-1">Preencha P5, XCC, Elev. Fix. e Tg Estai para calcular correção.</p>
           }
         </fieldset>
       }
 
+      <!-- Calculation results -->
       @if (calculationResult) {
         <div class="bg-gray-50 rounded p-3 text-xs space-y-1 font-mono">
           <div class="grid grid-cols-2 gap-x-4">
@@ -104,6 +162,8 @@ export class GuyedElementCardComponent implements OnInit {
   @Input() validations: ValidationResultDto[] = [];
   @Output() updated = new EventEmitter<void>();
 
+  protected readonly Math = Math;
+
   private readonly api = inject(TowerApiService);
   catalog = signal<any[]>([]);
   selectedKind = '';
@@ -111,6 +171,9 @@ export class GuyedElementCardComponent implements OnInit {
   survey = { naturalElevation: 0, concreteCastingElevation: 0, distance: 0 };
   stayHorizAngle = 0;
   stayInclination = 45;
+  terrain = { cotaPF: 0, P5: 0, XCC: 0, elevFixation: 100.2, stayTangent: 0 };
+
+  anchorPoint = signal<GuyedElementDto['anchorPoint']>(undefined);
 
   ngOnInit() {
     if (this.element.foundation) {
@@ -122,6 +185,17 @@ export class GuyedElementCardComponent implements OnInit {
     if (this.element.stay) {
       this.stayHorizAngle = this.element.stay.horizontalAngle?.deg ?? 0;
       this.stayInclination = this.element.stay.inclinationAngle ?? 45;
+    }
+    if (this.element.anchorPoint) {
+      const ap = this.element.anchorPoint;
+      this.terrain = {
+        cotaPF: ap.cotaPF,
+        P5: ap.P5 ?? 0,
+        XCC: ap.XCC ?? 0,
+        elevFixation: 100.2,
+        stayTangent: 0,
+      };
+      this.anchorPoint.set(ap);
     }
   }
 
@@ -169,7 +243,17 @@ export class GuyedElementCardComponent implements OnInit {
     if (this.element.id !== 'MC') {
       body.stayHorizontalAngleDeg = this.stayHorizAngle;
       body.stayInclinationAngleDeg = this.stayInclination;
+      if (this.terrain.cotaPF > 0) {
+        body.cotaPF = this.terrain.cotaPF;
+        body.referencePoint5m = this.terrain.P5;
+        body.distanceToCC = this.terrain.XCC;
+        body.elevFixation = this.terrain.elevFixation;
+        body.stayTangent = this.terrain.stayTangent;
+      }
     }
-    this.api.updateElement(this.towerId, this.element.id, body).subscribe(() => this.updated.emit());
+    this.api.updateElement(this.towerId, this.element.id, body).subscribe((res: any) => {
+      if (res?.anchorPoint) this.anchorPoint.set(res.anchorPoint);
+      this.updated.emit();
+    });
   }
 }

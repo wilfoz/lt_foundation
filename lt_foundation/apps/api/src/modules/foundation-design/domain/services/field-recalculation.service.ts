@@ -4,6 +4,16 @@ export interface FieldMeasurements {
   distance?: number;
   stayHorizontalAngleDeg?: number;
   stayInclinationAngleDeg?: number;
+  /** Cota do ponto de fincamento (campo medido). */
+  cotaPF?: number;
+  /** Cota de referência a 5 m do PF (P5). */
+  referencePoint5m?: number;
+  /** Distância horizontal do MC ao ponto CC (XCC). */
+  distanceToCC?: number;
+  /** Elevação do ponto de fixação do estai no mastro (PC + DH). */
+  elevFixation?: number;
+  /** Tangente do estai (fixo por tipo de torre: N5SEL=0.7647, N5SEM=0.7383). */
+  stayTangent?: number;
 }
 
 export interface RecalculatedGeometry {

@@ -42,6 +42,15 @@ services:
     volumes:
       - ../apps/api/src:/app/apps/api/src
 
+  ocr-service:
+    build:
+      context: ..
+      dockerfile: apps/ocr-service/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8100:8100"
+    # docTR models are pre-downloaded inside the image — no GPU required
+
   web:
     build:
       context: ..

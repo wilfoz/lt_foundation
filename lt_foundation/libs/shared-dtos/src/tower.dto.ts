@@ -23,12 +23,29 @@ export interface StayDto {
   inclinationAngle: number;
 }
 
+/** Terrain-corrected anchor point data for a stay element. */
+export interface AnchorPointDto {
+  cotaPF: number;
+  P5?: number;
+  XCC?: number;
+  /** Terrain inclination angle in radians: arctan((cotaPF - P5) / 4). */
+  alfa?: number;
+  adjustedNCC?: number;
+  adjustedHC?: number;
+  distProj?: number;
+  anchorOffset?: number;
+  realDistance?: number;
+  cableCutLength?: number;
+  terrainAdjusted: boolean;
+}
+
 export interface GuyedElementDto {
   id: ElementId;
   foundation?: FoundationSelectionDto;
   survey?: SurveyPointDto;
   stay?: StayDto;
   stub?: StubDto;
+  anchorPoint?: AnchorPointDto;
 }
 
 export interface TowerDto {

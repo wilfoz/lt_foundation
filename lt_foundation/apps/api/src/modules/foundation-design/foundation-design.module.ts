@@ -27,8 +27,11 @@ import { CalculationController } from './presentation/controllers/calculation.co
 import { FoundationCatalogController } from './presentation/controllers/catalog.controller';
 import { FieldRecalculationController } from './presentation/controllers/field-recalculation.controller';
 
-// New domain services and use cases
+// Domain services
 import { FieldRecalculationService } from './domain/services/field-recalculation.service';
+import { StayGeometryService } from './domain/services/stay-geometry.service';
+
+// Use Cases
 import { RecalculateWithFieldDataUseCase } from './application/use-cases/recalculate-with-field-data.use-case';
 
 @Module({
@@ -52,6 +55,7 @@ import { RecalculateWithFieldDataUseCase } from './application/use-cases/recalcu
     EmitSpreadsheetUseCase,
     ListFoundationCatalogUseCase,
     FieldRecalculationService,
+    StayGeometryService,
     RecalculateWithFieldDataUseCase,
   ],
   exports: [TowerRepository, FoundationCatalogRepository],

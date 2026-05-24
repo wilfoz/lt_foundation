@@ -25,6 +25,20 @@ export interface DepthResultDto {
   G: number;
 }
 
+/** Results of the terrain correction pipeline (Fundacao SM-VPM). */
+export interface TerrainCorrectionResultDto {
+  /** Terrain inclination angle in radians. */
+  alfa: number;
+  /** alfa converted to degrees for display. */
+  alfaDeg: number;
+  adjustedNCC: number;
+  adjustedHC: number;
+  anchorOffset: number;
+  realDistance: number;
+  cableCutLength: number;
+  terrainAdjusted: true;
+}
+
 export interface ElementCalculationResultDto {
   elementId: string;
   Afl: number;
@@ -34,6 +48,7 @@ export interface ElementCalculationResultDto {
   volumes: CaissonVolumesDto | FootingVolumesDto;
   corners?: { s1: Point2D; s2: Point2D; s3: Point2D; s4: Point2D };
   stayRadialDistance?: number;
+  terrainCorrection?: TerrainCorrectionResultDto;
 }
 
 export interface CalculationResultDto {
